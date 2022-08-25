@@ -8,11 +8,11 @@ export class CreateUserDto {
 
   @IsString()
   @MinLength(6)
-  @MaxLength(64)
+  @MaxLength(250)
   password: string;
 
   @IsString()
   @MinLength(6)
-  @MaxLength(64)
+  @MaxLength(250)
   repeatPassword: string;
 }
