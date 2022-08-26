@@ -21,6 +21,7 @@ export class AuthService {
       user &&
       (await this.passwordService.comparePassword(password, user.password))
     ) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...result } = user;
       return result;
     }
