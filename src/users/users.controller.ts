@@ -10,7 +10,7 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from '@prisma/client';
+import { PublicUser } from 'src/utils/typings/public-user';
 
 @Controller('users')
 export class UsersController {
@@ -27,12 +27,12 @@ export class UsersController {
   }
 
   @Get()
-  findAll(): Promise<User[]> {
+  findAll(): Promise<PublicUser[]> {
     return this.usersService.findAll();
   }
 
   @Get(':username')
-  findOne(@Param('username') username: string): Promise<User | null> {
+  findOne(@Param('username') username: string): Promise<PublicUser | null> {
     return this.usersService.findOne({ username });
   }
 

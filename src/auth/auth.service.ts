@@ -16,7 +16,7 @@ export class AuthService {
     username: string,
     password: string,
   ): Promise<JwtData | null> {
-    const user = await this.usersService.findOne({ username });
+    const user = await this.usersService.findOneWithAllDetails({ username });
     if (
       user &&
       (await this.passwordService.comparePassword(password, user.password))
