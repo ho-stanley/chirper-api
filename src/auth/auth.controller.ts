@@ -1,5 +1,5 @@
 import { Controller, Post, Req, UseGuards } from '@nestjs/common';
-import { Request } from 'express';
+import { RequestJwt } from 'src/utils/typings/request-jwt';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 
@@ -9,7 +9,7 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('/login')
-  async login(@Req() req: Request) {
+  async login(@Req() req: RequestJwt) {
     return this.authService.login(req.user);
   }
 }

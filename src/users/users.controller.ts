@@ -10,24 +10,30 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { PublicUser } from 'src/utils/typings/public-user';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto) {
+    const { username, password } = createUserDto;
+    await this.usersService.validateCreateUserData(createUserDto);
+    return this.usersService.create({
+      username,
+      password,
+    });
   }
 
   @Get()
-  findAll() {
+  findAll(): Promise<PublicUser[]> {
     return this.usersService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
+  @Get(':username')
+  findOne(@Param('username') username: string): Promise<PublicUser | null> {
+    return this.usersService.findOne({ username });
   }
 
   @Patch(':id')
