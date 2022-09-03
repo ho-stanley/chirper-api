@@ -18,6 +18,8 @@ model Post {
   comments Comment[]
   author User @relation(fields: [authorId], references: [id])
   authorId String @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime?
 }
 
 model Comment {
@@ -25,6 +27,8 @@ model Comment {
   post Post @relation(fields: [postId], references: [id])
   postId String @db.ObjectId
   comment String
+  createAt DateTime @default(now())
+  updatedAt DateTime?
 }
 
 model User {
