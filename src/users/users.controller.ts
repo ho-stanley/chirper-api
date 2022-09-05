@@ -16,6 +16,7 @@ import { Roles } from 'src/utils/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/utils/guards/roles.guard';
 import { Role } from '@prisma/client';
+import { UserGuard } from 'src/utils/guards/user.guard';
 
 @Controller('users')
 export class UsersController {
@@ -36,18 +37,20 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @UseGuards(JwtAuthGuard, UserGuard)
   @Get(':username')
   findOne(@Param('username') username: string): Promise<PublicUser | null> {
     return this.usersService.findOne({ username });
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  @UseGuards(JwtAuthGuard, UserGuard)
+  @Patch(':username')
+  update(@Param('username') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(+id, updateUserDto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Delete(':id')
+  @Delete(':username')
   @Roles(Role.ADMIN)
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
