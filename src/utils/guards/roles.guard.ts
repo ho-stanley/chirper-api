@@ -2,7 +2,12 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '@prisma/client';
 import { ROLES_KEY } from '../decorators/roles.decorator';
+import { RequestWithUser } from '../typings/request-user';
 
+/**
+ * Roles guard is used to protect route handlers and allowing
+ * only the specified roles to access it.
+ */
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
@@ -13,7 +18,7 @@ export class RolesGuard implements CanActivate {
       context.getClass(),
     ]);
     if (!requiresRoles) return true;
-    const { user } = context.switchToHttp().getRequest();
-    return requiresRoles.some((role) => user.role?.includes(role));
+    const { user } = context.switchToHttp().getRequest<RequestWithUser>();
+    return requiresRoles.some((role) => user.role.includes(role));
   }
 }
