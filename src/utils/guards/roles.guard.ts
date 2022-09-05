@@ -7,6 +7,8 @@ import { RequestWithUser } from '../typings/request-user';
 /**
  * Roles guard is used to protect route handlers and allowing
  * only the specified roles to access it.
+ *
+ * JwtAuthGuard must be used before RolesGuard.
  */
 @Injectable()
 export class RolesGuard implements CanActivate {
