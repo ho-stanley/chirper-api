@@ -11,32 +11,33 @@ datasource db {
 }
 
 model Post {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  slug String @unique
-  title String
-  body String
-  comments Comment[]
-  author User @relation(fields: [authorId], references: [id])
-  authorId String @db.ObjectId
-  createdAt DateTime @default(now())
-  updatedAt DateTime?
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  title      String
+  body       String
+  comments   Comment[]
+  author     User      @relation(fields: [authorId], references: [id])
+  authorId   String    @db.ObjectId
+  authorName String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime?
 }
 
 model Comment {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  post Post @relation(fields: [postId], references: [id])
-  postId String @db.ObjectId
-  comment String
-  createAt DateTime @default(now())
-  updatedAt DateTime?
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  post       Post      @relation(fields: [postId], references: [id])
+  postId     String    @db.ObjectId
+  body       String
+  authorName String
+  createAt   DateTime  @default(now())
+  updatedAt  DateTime?
 }
 
 model User {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
   username String @unique
   password String
-  role Role @default(USER)
-  posts Post[]
+  role     Role   @default(USER)
+  posts    Post[]
 }
 
 enum Role {
