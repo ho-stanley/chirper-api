@@ -1,6 +1,6 @@
 import { Request } from 'express';
-import { PublicUser } from './public-user';
+import { JwtData } from './request-jwt';
 
 export interface RequestWithUser extends Request {
-  user: PublicUser;
+  user: JwtData;
 }
