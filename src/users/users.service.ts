@@ -3,7 +3,6 @@ import { Prisma, User } from '@prisma/client';
 import { PasswordService } from 'src/utils/password/password.service';
 import { PrismaService } from 'src/utils/prisma/prisma.service';
 import { PublicUser } from 'src/utils/typings/public-user';
-import { exclude } from 'src/utils/utils';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -14,7 +13,7 @@ export class UsersService {
     private readonly passwordService: PasswordService,
   ) {}
 
-  async create(data: Prisma.UserCreateInput) {
+  async create(data: Prisma.UserCreateInput): Promise<PublicUser> {
     const { password, ...rest } = data;
     const hashedPassword = await this.passwordService.hashPassword(password);
     const user = await this.prismaService.user.create({
@@ -22,8 +21,13 @@ export class UsersService {
         password: hashedPassword,
         ...rest,
       },
+      select: {
+        id: true,
+        username: true,
+        role: true,
+      },
     });
-    return exclude(user, 'password');
+    return user;
   }
 
   findAll(): Promise<PublicUser[]> {
