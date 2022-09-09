@@ -24,12 +24,7 @@ export class UsersController {
 
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
-    const { username, password } = createUserDto;
-    await this.usersService.validateCreateUserData(createUserDto);
-    return this.usersService.create({
-      username,
-      password,
-    });
+    return this.usersService.create(createUserDto);
   }
 
   @Get()

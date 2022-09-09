@@ -13,8 +13,9 @@ export class UsersService {
     private readonly passwordService: PasswordService,
   ) {}
 
-  async create(data: Prisma.UserCreateInput): Promise<PublicUser> {
-    const { password, ...rest } = data;
+  async create(createUserDto: CreateUserDto): Promise<PublicUser> {
+    await this.validateCreateUserData(createUserDto);
+    const { password, ...rest } = createUserDto;
     const hashedPassword = await this.passwordService.hashPassword(password);
     const user = await this.prismaService.user.create({
       data: {
