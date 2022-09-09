@@ -65,12 +65,15 @@ export class UsersService {
     });
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  update(username: string, updateUserDto: UpdateUserDto) {
+    return `This action updates a #${username} user`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(userWhereUniqueInput: Prisma.UserWhereUniqueInput) {
+    const user = await this.prismaService.user.delete({
+      where: userWhereUniqueInput,
+    });
+    return user;
   }
 
   /**

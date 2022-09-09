@@ -45,14 +45,17 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard, UserGuard)
   @Patch(':username')
-  update(@Param('username') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  update(
+    @Param('username') username: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    return this.usersService.update(username, updateUserDto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':username')
   @Roles(Role.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  remove(@Param('username') username: string) {
+    return this.usersService.remove({ username });
   }
 }
