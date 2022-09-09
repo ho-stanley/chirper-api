@@ -1,5 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { Role } from '@prisma/client';
 import { Observable } from 'rxjs';
+import { UsersService } from 'src/users/users.service';
 import { RequestWithUser } from '../typings/request-user';
 
 /**
@@ -14,13 +16,16 @@ import { RequestWithUser } from '../typings/request-user';
  */
 @Injectable()
 export class UserGuard implements CanActivate {
+  constructor(private readonly usersService: UsersService) {}
+
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const req = context.switchToHttp().getRequest<RequestWithUser>();
+    const { user } = req;
+    if (user.role.toLowerCase() === Role.ADMIN.toLowerCase()) return true;
     const { username } = req.params;
     if (!username) return false;
-    const { user } = req;
     return username.toLowerCase() === user.username.toLowerCase();
   }
 }
