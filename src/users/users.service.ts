@@ -3,7 +3,6 @@ import { Prisma, User } from '@prisma/client';
 import { PasswordService } from 'src/utils/password/password.service';
 import { PrismaService } from 'src/utils/prisma/prisma.service';
 import { PublicUser } from 'src/utils/typings/public-user';
-import { exclude } from 'src/utils/utils';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -14,16 +13,22 @@ export class UsersService {
     private readonly passwordService: PasswordService,
   ) {}
 
-  async create(data: Prisma.UserCreateInput) {
-    const { password, ...rest } = data;
+  async create(createUserDto: CreateUserDto): Promise<PublicUser> {
+    await this.validateCreateUserData(createUserDto);
+    const { password, ...rest } = createUserDto;
     const hashedPassword = await this.passwordService.hashPassword(password);
     const user = await this.prismaService.user.create({
       data: {
         password: hashedPassword,
         ...rest,
       },
+      select: {
+        id: true,
+        username: true,
+        role: true,
+      },
     });
-    return exclude(user, 'password');
+    return user;
   }
 
   findAll(): Promise<PublicUser[]> {
@@ -61,12 +66,47 @@ export class UsersService {
     });
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(
+    userWhereUniqueInput: Prisma.UserWhereUniqueInput,
+    updateUserDto: UpdateUserDto,
+  ) {
+    const { password, repeatPassword } = updateUserDto;
+    if (!this.validatePassword(password, repeatPassword)) {
+      throw new BadRequestException('Password does not match');
+    }
+    const hashedPassword = await this.passwordService.hashPassword(password);
+    const user = await this.prismaService.user.update({
+      where: userWhereUniqueInput,
+      data: {
+        password: hashedPassword,
+      },
+      select: {
+        id: true,
+        username: true,
+        role: true,
+      },
+    });
+    return user;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(userWhereUniqueInput: Prisma.UserWhereUniqueInput) {
+    const user = await this.prismaService.user
+      .delete({
+        where: userWhereUniqueInput,
+      })
+      .catch(() => {
+        throw new BadRequestException('Username does not exist');
+      });
+    return user;
+  }
+
+  /**
+   * Check if password match.
+   * @param password
+   * @param repeatPassword
+   */
+  validatePassword(password: string, repeatPassword: string): boolean {
+    return password === repeatPassword;
   }
 
   /**
@@ -76,7 +116,7 @@ export class UsersService {
    */
   async validateCreateUserData(createUserDto: CreateUserDto): Promise<void> {
     const { username, password, repeatPassword } = createUserDto;
-    if (password !== repeatPassword)
+    if (!this.validatePassword(password, repeatPassword))
       throw new BadRequestException('Password does not match');
     const user = await this.findOne({
       username,
