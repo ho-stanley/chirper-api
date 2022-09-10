@@ -30,8 +30,8 @@ export class CommentsController {
   }
 
   @Get()
-  findAll() {
-    return this.commentsService.findAll();
+  findAllByPostId(@Param('postId') postId: string) {
+    return this.commentsService.findAllByPostId(postId);
   }
 
   @Get(':postId')

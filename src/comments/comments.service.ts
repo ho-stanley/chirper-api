@@ -43,8 +43,19 @@ export class CommentsService {
     return createdComment[0];
   }
 
-  findAll() {
-    return `This action returns all comments`;
+  findAllByPostId(postId: string): Promise<Comment[]> {
+    return this.prismaService.comment
+      .findMany({
+        where: {
+          postId,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      })
+      .catch(() => {
+        throw new BadRequestException('Post does not exist');
+      });
   }
 
   findOne(id: number) {
