@@ -49,6 +49,6 @@ export class CommentsController {
 
   @Delete('comments/:postId')
   remove(@Param('postId') id: string) {
-    return this.commentsService.remove(+id);
+    return this.commentsService.remove({ id });
   }
 }

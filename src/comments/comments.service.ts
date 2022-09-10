@@ -74,7 +74,16 @@ export class CommentsService {
     return `This action updates a #${id} comment`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} comment`;
+  async remove(
+    commentWhereUniqueInput: Prisma.CommentWhereUniqueInput,
+  ): Promise<Comment> {
+    const removedComment = await this.prismaService.comment
+      .delete({
+        where: commentWhereUniqueInput,
+      })
+      .catch(() => {
+        throw new BadRequestException('Comment does not exist');
+      });
+    return removedComment;
   }
 }
