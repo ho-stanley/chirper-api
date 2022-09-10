@@ -71,9 +71,13 @@ export class UsersService {
   }
 
   async remove(userWhereUniqueInput: Prisma.UserWhereUniqueInput) {
-    const user = await this.prismaService.user.delete({
-      where: userWhereUniqueInput,
-    });
+    const user = await this.prismaService.user
+      .delete({
+        where: userWhereUniqueInput,
+      })
+      .catch(() => {
+        throw new BadRequestException('Username does not exist');
+      });
     return user;
   }
 
