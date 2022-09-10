@@ -39,12 +39,13 @@ export class CommentsController {
     return this.commentsService.findOne({ id });
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch('comments/:postId')
   update(
     @Param('postId') id: string,
     @Body() updateCommentDto: UpdateCommentDto,
   ) {
-    return this.commentsService.update(+id, updateCommentDto);
+    return this.commentsService.update({ id }, updateCommentDto);
   }
 
   @Delete('comments/:postId')

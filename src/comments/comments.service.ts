@@ -70,8 +70,19 @@ export class CommentsService {
       });
   }
 
-  update(id: number, updateCommentDto: UpdateCommentDto) {
-    return `This action updates a #${id} comment`;
+  async update(
+    commentWhereUniqueInput: Prisma.CommentWhereUniqueInput,
+    updateCommentDto: UpdateCommentDto,
+  ): Promise<Comment> {
+    const { body } = updateCommentDto;
+    const updatedComment = await this.prismaService.comment.update({
+      where: commentWhereUniqueInput,
+      data: {
+        body,
+        updatedAt: new Date(),
+      },
+    });
+    return updatedComment;
   }
 
   async remove(

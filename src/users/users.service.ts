@@ -75,7 +75,7 @@ export class UsersService {
       throw new BadRequestException('Password does not match');
     }
     const hashedPassword = await this.passwordService.hashPassword(password);
-    const user = await this.prismaService.user.update({
+    const updatedUser = await this.prismaService.user.update({
       where: userWhereUniqueInput,
       data: {
         password: hashedPassword,
@@ -86,7 +86,7 @@ export class UsersService {
         role: true,
       },
     });
-    return user;
+    return updatedUser;
   }
 
   async remove(userWhereUniqueInput: Prisma.UserWhereUniqueInput) {
