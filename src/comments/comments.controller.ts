@@ -15,12 +15,12 @@ import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 
-@Controller('posts/:postId/comments')
+@Controller()
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Post()
+  @Post('posts/:postId/comments')
   create(
     @Body() createCommentDto: CreateCommentDto,
     @Param('postId') postId: string,
@@ -29,17 +29,17 @@ export class CommentsController {
     return this.commentsService.create(createCommentDto, postId, req.user);
   }
 
-  @Get()
+  @Get('posts/:postId/comments')
   findAllByPostId(@Param('postId') postId: string) {
     return this.commentsService.findAllByPostId(postId);
   }
 
-  @Get(':postId')
-  findOne(@Param('postId') id: string) {
-    return this.commentsService.findOne(+id);
+  @Get('comments/:id')
+  findOne(@Param('id') id: string) {
+    return this.commentsService.findOne({ id });
   }
 
-  @Patch(':postId')
+  @Patch('comments/:postId')
   update(
     @Param('postId') id: string,
     @Body() updateCommentDto: UpdateCommentDto,
@@ -47,7 +47,7 @@ export class CommentsController {
     return this.commentsService.update(+id, updateCommentDto);
   }
 
-  @Delete(':postId')
+  @Delete('comments/:postId')
   remove(@Param('postId') id: string) {
     return this.commentsService.remove(+id);
   }

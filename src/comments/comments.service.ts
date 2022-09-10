@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Comment } from '@prisma/client';
+import { Comment, Prisma } from '@prisma/client';
 import { PrismaService } from 'src/utils/prisma/prisma.service';
 import { JwtData } from 'src/utils/typings/request-jwt';
 import { CreateCommentDto } from './dto/create-comment.dto';
@@ -58,8 +58,16 @@ export class CommentsService {
       });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} comment`;
+  async findOne(
+    commentWhereUniqueInput: Prisma.CommentWhereUniqueInput,
+  ): Promise<Comment | null> {
+    return this.prismaService.comment
+      .findUnique({
+        where: commentWhereUniqueInput,
+      })
+      .catch(() => {
+        throw new BadRequestException('Comment does not exist');
+      });
   }
 
   update(id: number, updateCommentDto: UpdateCommentDto) {
