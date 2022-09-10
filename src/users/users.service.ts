@@ -66,8 +66,27 @@ export class UsersService {
     });
   }
 
-  update(username: string, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${username} user`;
+  async update(
+    userWhereUniqueInput: Prisma.UserWhereUniqueInput,
+    updateUserDto: UpdateUserDto,
+  ) {
+    const { password, repeatPassword } = updateUserDto;
+    if (!this.validatePassword(password, repeatPassword)) {
+      throw new BadRequestException('Password does not match');
+    }
+    const hashedPassword = await this.passwordService.hashPassword(password);
+    const user = await this.prismaService.user.update({
+      where: userWhereUniqueInput,
+      data: {
+        password: hashedPassword,
+      },
+      select: {
+        id: true,
+        username: true,
+        role: true,
+      },
+    });
+    return user;
   }
 
   async remove(userWhereUniqueInput: Prisma.UserWhereUniqueInput) {
@@ -82,13 +101,22 @@ export class UsersService {
   }
 
   /**
+   * Check if password match.
+   * @param password
+   * @param repeatPassword
+   */
+  validatePassword(password: string, repeatPassword: string): boolean {
+    return password === repeatPassword;
+  }
+
+  /**
    * Validates password matches and username is not in use.
    * @param createUserDto - User data
    * @throws Will throw an error if password doesn't match or username is in use.
    */
   async validateCreateUserData(createUserDto: CreateUserDto): Promise<void> {
     const { username, password, repeatPassword } = createUserDto;
-    if (password !== repeatPassword)
+    if (!this.validatePassword(password, repeatPassword))
       throw new BadRequestException('Password does not match');
     const user = await this.findOne({
       username,
