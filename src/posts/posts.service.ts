@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Post } from '@prisma/client';
+import { Post, Prisma } from '@prisma/client';
 import { PrismaService } from 'src/utils/prisma/prisma.service';
 import { JwtData } from 'src/utils/typings/request-jwt';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -23,28 +23,33 @@ export class PostsService {
     return this.prismaService.post.findMany();
   }
 
-  async findOne(id: string): Promise<Post | null> {
-    try {
-      const post = await this.prismaService.post.findUnique({
-        where: {
-          id,
-        },
+  async findOne(
+    postWhereUniqueInput: Prisma.PostWhereUniqueInput,
+  ): Promise<Post | null> {
+    const post = await this.prismaService.post
+      .findUnique({
+        where: postWhereUniqueInput,
+      })
+      .catch(() => {
+        /**
+         * Prisma query will throw an error on malformed ObjectID
+         * and needs to be handled.
+         */
+        throw new BadRequestException('Post does not exist');
       });
-      return post;
-    } catch (e: any) {
-      /**
-       * Prisma query will throw an error on malformed ObjectID
-       * and needs to be handled.
-       */
-      throw new BadRequestException();
-    }
+    return post;
   }
 
-  async remove(id: string) {
-    return this.prismaService.post.deleteMany({
-      where: {
-        id,
-      },
-    });
+  async remove(
+    postWhereUniqueInput: Prisma.PostWhereUniqueInput,
+  ): Promise<Post> {
+    const removedPost = await this.prismaService.post
+      .delete({
+        where: postWhereUniqueInput,
+      })
+      .catch(() => {
+        throw new BadRequestException('Post does not exist');
+      });
+    return removedPost;
   }
 }

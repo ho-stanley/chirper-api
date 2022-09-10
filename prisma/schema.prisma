@@ -24,11 +24,12 @@ model Post {
 
 model Comment {
   id         String    @id @default(auto()) @map("_id") @db.ObjectId
-  post       Post      @relation(fields: [postId], references: [id])
+  post       Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId     String    @db.ObjectId
   body       String
+  authorId   String    @db.ObjectId
   authorName String
-  createAt   DateTime  @default(now())
+  createdAt  DateTime  @default(now())
   updatedAt  DateTime?
 }
 
