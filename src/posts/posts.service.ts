@@ -24,27 +24,32 @@ export class PostsService {
   }
 
   async findOne(id: string): Promise<Post | null> {
-    try {
-      const post = await this.prismaService.post.findUnique({
+    const post = await this.prismaService.post
+      .findUnique({
         where: {
           id,
         },
+      })
+      .catch(() => {
+        /**
+         * Prisma query will throw an error on malformed ObjectID
+         * and needs to be handled.
+         */
+        throw new BadRequestException();
       });
-      return post;
-    } catch (e: any) {
-      /**
-       * Prisma query will throw an error on malformed ObjectID
-       * and needs to be handled.
-       */
-      throw new BadRequestException();
-    }
+    return post;
   }
 
   async remove(id: string) {
-    return this.prismaService.post.deleteMany({
-      where: {
-        id,
-      },
-    });
+    const removedPost = await this.prismaService.post
+      .delete({
+        where: {
+          id,
+        },
+      })
+      .catch(() => {
+        throw new BadRequestException('Post does not exist');
+      });
+    return removedPost;
   }
 }
