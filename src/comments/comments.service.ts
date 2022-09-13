@@ -29,7 +29,7 @@ export class CommentsService {
   async findAllByPostId(
     commentWhereInput: Prisma.CommentWhereInput,
   ): Promise<Comment[]> {
-    return this.prismaService.comment
+    const comments = await this.prismaService.comment
       .findMany({
         where: commentWhereInput,
         orderBy: {
@@ -37,6 +37,8 @@ export class CommentsService {
         },
       })
       .catch(prismaQueryError);
+
+    return comments;
   }
 
   async findOne(
@@ -56,9 +58,11 @@ export class CommentsService {
     commentWhereUniqueInput: Prisma.CommentWhereUniqueInput,
     user: PublicUser,
   ): Promise<Comment> {
-    const commentToUpdate = await this.prismaService.comment.findUniqueOrThrow({
-      where: commentWhereUniqueInput,
-    });
+    const commentToUpdate = await this.prismaService.comment
+      .findUniqueOrThrow({
+        where: commentWhereUniqueInput,
+      })
+      .catch(prismaQueryError);
     const ability = this.caslAbilityFactory.createForUser(user);
 
     if (ability.cannot(Action.Update, subject('Comment', commentToUpdate))) {
