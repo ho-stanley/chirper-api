@@ -27,6 +27,7 @@ model Comment {
   post       Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId     String    @db.ObjectId
   body       String
+  author     User      @relation(fields: [authorId], references: [id])
   authorId   String    @db.ObjectId
   authorName String
   createdAt  DateTime  @default(now())
@@ -34,11 +35,12 @@ model Comment {
 }
 
 model User {
-  id       String @id @default(auto()) @map("_id") @db.ObjectId
-  username String @unique
+  id       String    @id @default(auto()) @map("_id") @db.ObjectId
+  username String    @unique
   password String
-  role     Role   @default(USER)
+  role     Role      @default(USER)
   posts    Post[]
+  comments Comment[]
 }
 
 enum Role {
