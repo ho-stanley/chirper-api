@@ -1,25 +1,28 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { subject } from '@casl/ability';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { Post, Prisma } from '@prisma/client';
+import { CaslAbilityFactory } from 'src/casl/casl-ability.factory';
+import { Action } from 'src/utils/enums/action.enum';
+import { prismaQueryError } from 'src/utils/error-handler';
 import { PrismaService } from 'src/utils/prisma/prisma.service';
-import { JwtData } from 'src/utils/typings/request-jwt';
-import { CreatePostDto } from './dto/create-post.dto';
+import { PublicUser } from 'src/utils/typings/public-user';
 
 @Injectable()
 export class PostsService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly caslAbilityFactory: CaslAbilityFactory,
+  ) {}
 
-  async create(createPostDto: CreatePostDto, user: JwtData): Promise<Post> {
-    const post = await this.prismaService.post.create({
-      data: {
-        authorId: user.id,
-        authorName: user.username,
-        ...createPostDto,
-      },
+  async create(postCreateInput: Prisma.PostCreateInput): Promise<Post> {
+    const createdPost = await this.prismaService.post.create({
+      data: postCreateInput,
     });
-    return post;
+
+    return createdPost;
   }
 
-  findAll(): Promise<Post[]> {
+  async findAll(): Promise<Post[]> {
     return this.prismaService.post.findMany();
   }
 
@@ -30,26 +33,29 @@ export class PostsService {
       .findUnique({
         where: postWhereUniqueInput,
       })
-      .catch(() => {
-        /**
-         * Prisma query will throw an error on malformed ObjectID
-         * and needs to be handled.
-         */
-        throw new BadRequestException('Post does not exist');
-      });
+      .catch(prismaQueryError);
+
     return post;
   }
 
   async remove(
     postWhereUniqueInput: Prisma.PostWhereUniqueInput,
+    user: PublicUser,
   ): Promise<Post> {
-    const removedPost = await this.prismaService.post
-      .delete({
+    const postToRemove = await this.prismaService.post
+      .findUniqueOrThrow({
         where: postWhereUniqueInput,
       })
-      .catch(() => {
-        throw new BadRequestException('Post does not exist');
-      });
+      .catch(prismaQueryError);
+    const ability = this.caslAbilityFactory.createForUser(user);
+
+    if (ability.cannot(Action.Delete, subject('Post', postToRemove)))
+      throw new ForbiddenException();
+
+    const removedPost = await this.prismaService.post.delete({
+      where: postWhereUniqueInput,
+    });
+
     return removedPost;
   }
 }
