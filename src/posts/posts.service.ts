@@ -23,7 +23,9 @@ export class PostsService {
   }
 
   async findAll(): Promise<Post[]> {
-    return this.prismaService.post.findMany();
+    const posts = await this.prismaService.post.findMany();
+
+    return posts;
   }
 
   async findOne(
