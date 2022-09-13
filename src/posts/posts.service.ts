@@ -52,9 +52,11 @@ export class PostsService {
     if (ability.cannot(Action.Delete, subject('Post', postToRemove)))
       throw new ForbiddenException();
 
-    const removedPost = await this.prismaService.post.delete({
-      where: postWhereUniqueInput,
-    });
+    const removedPost = await this.prismaService.post
+      .delete({
+        where: postWhereUniqueInput,
+      })
+      .catch(prismaQueryError);
 
     return removedPost;
   }
