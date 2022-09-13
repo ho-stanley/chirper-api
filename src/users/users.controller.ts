@@ -7,16 +7,14 @@ import {
   Param,
   Delete,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PublicUser } from 'src/utils/typings/public-user';
-import { Roles } from 'src/utils/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { RolesGuard } from 'src/utils/guards/roles.guard';
-import { Role } from '@prisma/client';
-import { UserGuard } from 'src/utils/guards/user.guard';
+import { RequestWithUser } from 'src/utils/typings/request-user';
 
 @Controller('users')
 export class UsersController {
@@ -28,29 +26,29 @@ export class UsersController {
   }
 
   @Get()
-  findAll(): Promise<PublicUser[]> {
+  findAll() {
     return this.usersService.findAll();
   }
 
-  @UseGuards(JwtAuthGuard, UserGuard)
+  @UseGuards(JwtAuthGuard)
   @Get(':username')
   findOne(@Param('username') username: string): Promise<PublicUser | null> {
     return this.usersService.findOne({ username });
   }
 
-  @UseGuards(JwtAuthGuard, UserGuard)
+  @UseGuards(JwtAuthGuard)
   @Patch(':username')
   update(
     @Param('username') username: string,
     @Body() updateUserDto: UpdateUserDto,
+    @Req() req: RequestWithUser,
   ) {
-    return this.usersService.update({ username }, updateUserDto);
+    return this.usersService.update({ username }, updateUserDto, req.user);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete(':username')
-  @Roles(Role.ADMIN)
-  remove(@Param('username') username: string) {
-    return this.usersService.remove({ username });
+  remove(@Param('username') username: string, @Req() req: RequestWithUser) {
+    return this.usersService.remove({ username }, req.user);
   }
 }
