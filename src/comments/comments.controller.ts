@@ -26,12 +26,19 @@ export class CommentsController {
     @Param('postId') postId: string,
     @Req() req: RequestWithUser,
   ) {
-    return this.commentsService.create(createCommentDto, postId, req.user);
+    const { id, username } = req.user;
+
+    return this.commentsService.create({
+      author: { connect: { id } },
+      authorName: username,
+      post: { connect: { id: postId } },
+      ...createCommentDto,
+    });
   }
 
   @Get('posts/:postId/comments')
   findAllByPostId(@Param('postId') postId: string) {
-    return this.commentsService.findAllByPostId(postId);
+    return this.commentsService.findAllByPostId({ postId });
   }
 
   @Get('comments/:id')
@@ -40,16 +47,22 @@ export class CommentsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch('comments/:postId')
+  @Patch('comments/:id')
   update(
-    @Param('postId') id: string,
+    @Param('id') id: string,
     @Body() updateCommentDto: UpdateCommentDto,
+    @Req() req: RequestWithUser,
   ) {
-    return this.commentsService.update({ id }, updateCommentDto);
+    return this.commentsService.update(
+      { ...updateCommentDto },
+      { id },
+      req.user,
+    );
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete('comments/:postId')
-  remove(@Param('postId') id: string) {
-    return this.commentsService.remove({ id });
+  remove(@Param('postId') id: string, @Req() req: RequestWithUser) {
+    return this.commentsService.remove({ id }, req.user);
   }
 }
