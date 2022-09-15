@@ -20,7 +20,13 @@ export class PostsController {
   @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createPostDto: CreatePostDto, @Req() req: RequestWithUser) {
-    return this.postsService.create(createPostDto, req.user);
+    const { id, username } = req.user;
+
+    return this.postsService.create({
+      author: { connect: { id } },
+      authorName: username,
+      ...createPostDto,
+    });
   }
 
   @Get()
@@ -35,7 +41,7 @@ export class PostsController {
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.postsService.remove({ id });
+  remove(@Param('id') id: string, @Req() req: RequestWithUser) {
+    return this.postsService.remove({ id }, req.user);
   }
 }

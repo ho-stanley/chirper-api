@@ -1,5 +1,13 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { subject } from '@casl/ability';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
+import { CaslAbilityFactory } from 'src/casl/casl-ability.factory';
+import { Action } from 'src/utils/enums/action.enum';
+import { prismaQueryError } from 'src/utils/error-handler';
 import { PasswordService } from 'src/utils/password/password.service';
 import { PrismaService } from 'src/utils/prisma/prisma.service';
 import { PublicUser } from 'src/utils/typings/public-user';
@@ -11,16 +19,17 @@ export class UsersService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly passwordService: PasswordService,
+    private readonly caslAbilityFactory: CaslAbilityFactory,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<PublicUser> {
     await this.validateCreateUserData(createUserDto);
-    const { password, ...rest } = createUserDto;
+    const { username, password } = createUserDto;
     const hashedPassword = await this.passwordService.hashPassword(password);
-    const user = await this.prismaService.user.create({
+    const createdUser = await this.prismaService.user.create({
       data: {
         password: hashedPassword,
-        ...rest,
+        username,
       },
       select: {
         id: true,
@@ -28,76 +37,113 @@ export class UsersService {
         role: true,
       },
     });
-    return user;
+
+    return createdUser;
   }
 
-  findAll(): Promise<PublicUser[]> {
-    return this.prismaService.user.findMany({
+  async findAll(): Promise<PublicUser[]> {
+    const users = await this.prismaService.user.findMany({
       select: {
         id: true,
         username: true,
         role: true,
       },
     });
+
+    return users;
   }
 
   /**
    * This returns a user with their hashed password, should only be used
    * if you need their password. Use findOne() method in other cases.
    */
-  findOneWithAllDetails(
+  async findOneWithAllDetails(
     userWhereUniqueInput: Prisma.UserWhereUniqueInput,
   ): Promise<User | null> {
-    return this.prismaService.user.findUnique({
-      where: userWhereUniqueInput,
-    });
+    const user = await this.prismaService.user
+      .findUnique({
+        where: userWhereUniqueInput,
+      })
+      .catch(prismaQueryError);
+
+    return user;
   }
 
-  findOne(
+  async findOne(
     userWhereUniqueInput: Prisma.UserWhereUniqueInput,
   ): Promise<PublicUser | null> {
-    return this.prismaService.user.findUnique({
-      where: userWhereUniqueInput,
-      select: {
-        id: true,
-        username: true,
-        role: true,
-      },
-    });
+    const user = await this.prismaService.user
+      .findUnique({
+        where: userWhereUniqueInput,
+        select: {
+          id: true,
+          username: true,
+          role: true,
+        },
+      })
+      .catch(prismaQueryError);
+
+    return user;
   }
 
   async update(
     userWhereUniqueInput: Prisma.UserWhereUniqueInput,
     updateUserDto: UpdateUserDto,
+    user: PublicUser,
   ) {
+    const userToUpdate = await this.prismaService.user
+      .findUniqueOrThrow({
+        where: userWhereUniqueInput,
+      })
+      .catch(prismaQueryError);
+    const ability = this.caslAbilityFactory.createForUser(user);
+
+    if (ability.cannot(Action.Delete, subject('User', userToUpdate)))
+      throw new ForbiddenException();
+
     const { password, repeatPassword } = updateUserDto;
-    if (!this.validatePassword(password, repeatPassword)) {
+    if (!this.validatePassword(password, repeatPassword))
       throw new BadRequestException('Password does not match');
-    }
+
     const hashedPassword = await this.passwordService.hashPassword(password);
-    const updatedUser = await this.prismaService.user.update({
-      where: userWhereUniqueInput,
-      data: {
-        password: hashedPassword,
-      },
-      select: {
-        id: true,
-        username: true,
-        role: true,
-      },
-    });
+    const updatedUser = await this.prismaService.user
+      .update({
+        where: userWhereUniqueInput,
+        data: {
+          password: hashedPassword,
+        },
+        select: {
+          id: true,
+          username: true,
+          role: true,
+        },
+      })
+      .catch(prismaQueryError);
+
     return updatedUser;
   }
 
-  async remove(userWhereUniqueInput: Prisma.UserWhereUniqueInput) {
-    const user = await this.prismaService.user
+  async remove(
+    userWhereUniqueInput: Prisma.UserWhereUniqueInput,
+    user: PublicUser,
+  ) {
+    const userToRemove = await this.prismaService.user
+      .findUniqueOrThrow({
+        where: userWhereUniqueInput,
+      })
+      .catch(prismaQueryError);
+    const ability = this.caslAbilityFactory.createForUser(user);
+
+    if (ability.cannot(Action.Delete, subject('User', userToRemove)))
+      throw new ForbiddenException();
+
+    const removedUser = await this.prismaService.user
       .delete({
         where: userWhereUniqueInput,
       })
-      .catch(() => {
-        throw new BadRequestException('Username does not exist');
-      });
-    return user;
+      .catch(prismaQueryError);
+
+    return removedUser;
   }
 
   /**
@@ -116,11 +162,14 @@ export class UsersService {
    */
   async validateCreateUserData(createUserDto: CreateUserDto): Promise<void> {
     const { username, password, repeatPassword } = createUserDto;
+
     if (!this.validatePassword(password, repeatPassword))
       throw new BadRequestException('Password does not match');
+
     const user = await this.findOne({
       username,
     });
+
     if (user) throw new BadRequestException('Username is already in use');
   }
 }
