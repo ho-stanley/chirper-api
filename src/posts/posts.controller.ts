@@ -7,11 +7,13 @@ import {
   Delete,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RequestWithUser } from 'src/utils/typings/request-user';
+import { isLimitValid } from 'src/utils/utils';
 
 @Controller('posts')
 export class PostsController {
@@ -30,8 +32,13 @@ export class PostsController {
   }
 
   @Get()
-  findAll() {
-    return this.postsService.findAll();
+  findAll(@Query('limit') limit?: number) {
+    return this.postsService.findAll({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: isLimitValid(limit) ? limit : undefined,
+    });
   }
 
   @Get(':id')

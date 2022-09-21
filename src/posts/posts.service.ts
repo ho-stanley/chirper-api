@@ -22,8 +22,8 @@ export class PostsService {
     return createdPost;
   }
 
-  async findAll(): Promise<Post[]> {
-    const posts = await this.prismaService.post.findMany();
+  async findAll(postFindManyArgs: Prisma.PostFindManyArgs): Promise<Post[]> {
+    const posts = await this.prismaService.post.findMany(postFindManyArgs);
 
     return posts;
   }
