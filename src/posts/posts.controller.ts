@@ -42,8 +42,11 @@ export class PostsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.postsService.findOne({ id });
+  findOne(
+    @Param('id') id: string,
+    @Query('comments') includeComments?: boolean,
+  ) {
+    return this.postsService.findOne({ id }, { comments: includeComments });
   }
 
   @UseGuards(JwtAuthGuard)

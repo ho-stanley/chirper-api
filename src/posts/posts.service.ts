@@ -30,10 +30,12 @@ export class PostsService {
 
   async findOne(
     postWhereUniqueInput: Prisma.PostWhereUniqueInput,
+    postInclude: Prisma.PostInclude,
   ): Promise<Post | null> {
     const post = await this.prismaService.post
       .findUnique({
         where: postWhereUniqueInput,
+        include: postInclude,
       })
       .catch(prismaQueryError);
 
