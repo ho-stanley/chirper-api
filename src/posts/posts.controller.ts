@@ -13,7 +13,7 @@ import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RequestWithUser } from 'src/utils/typings/request-user';
-import { isLimitValid } from 'src/utils/utils';
+import { FindPostsQueryDto } from './dto/find-posts-query.dto';
 
 @Controller('posts')
 export class PostsController {
@@ -32,12 +32,17 @@ export class PostsController {
   }
 
   @Get()
-  findAll(@Query('limit') limit?: number) {
+  findAll(@Query() query: FindPostsQueryDto) {
+    const { limit, userId } = query;
+
     return this.postsService.findAll({
       orderBy: {
         createdAt: 'desc',
       },
-      take: isLimitValid(limit) ? limit : undefined,
+      where: {
+        authorId: userId || undefined,
+      },
+      take: limit || undefined,
     });
   }
 
@@ -46,7 +51,10 @@ export class PostsController {
     @Param('id') id: string,
     @Query('comments') includeComments?: boolean,
   ) {
-    return this.postsService.findOne({ id }, { comments: includeComments });
+    return this.postsService.findOne(
+      { id },
+      { comments: includeComments && { orderBy: { createdAt: 'desc' } } },
+    );
   }
 
   @UseGuards(JwtAuthGuard)
