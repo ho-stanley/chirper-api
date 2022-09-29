@@ -1,5 +1,11 @@
 import { Type } from 'class-transformer';
-import { IsMongoId, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
+import {
+  IsMongoId,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class FindPostsQueryDto {
   @IsOptional()
@@ -12,4 +18,9 @@ export class FindPostsQueryDto {
   @IsNotEmpty()
   @IsMongoId()
   userId: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  keyword: string;
 }

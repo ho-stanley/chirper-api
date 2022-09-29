@@ -33,16 +33,36 @@ export class PostsController {
 
   @Get()
   findAll(@Query() query: FindPostsQueryDto) {
-    const { limit, userId } = query;
+    const { limit, userId, keyword } = query;
 
     return this.postsService.findAll({
       orderBy: {
         createdAt: 'desc',
       },
       where: {
-        authorId: userId || undefined,
+        AND: [
+          {
+            authorId: userId,
+          },
+          {
+            OR: [
+              {
+                title: {
+                  contains: keyword,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                body: {
+                  contains: keyword,
+                  mode: 'insensitive',
+                },
+              },
+            ],
+          },
+        ],
       },
-      take: limit || undefined,
+      take: limit,
     });
   }
 
