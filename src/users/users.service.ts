@@ -12,6 +12,7 @@ import { PasswordService } from 'src/utils/password/password.service';
 import { PrismaService } from 'src/utils/prisma/prisma.service';
 import { PublicUser } from 'src/utils/typings/public-user';
 import { CreateUserDto } from './dto/create-user.dto';
+import { CreateWithRoleDto } from './dto/create-with-role.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
@@ -30,6 +31,38 @@ export class UsersService {
       data: {
         password: hashedPassword,
         username,
+      },
+      select: {
+        id: true,
+        username: true,
+        role: true,
+      },
+    });
+
+    return createdUser;
+  }
+
+  async createWithRole(
+    createWithRoleDto: CreateWithRoleDto,
+    user: PublicUser,
+  ): Promise<PublicUser> {
+    const userRequesting = await this.prismaService.user
+      .findUniqueOrThrow({
+        where: { username: user.username },
+      })
+      .catch(prismaQueryError);
+    const ability = this.caslAbilityFactory.createForUser(userRequesting);
+
+    if (ability.cannot(Action.Create, 'User')) throw new ForbiddenException();
+
+    await this.validateCreateUserData(createWithRoleDto);
+    const { username, password, role } = createWithRoleDto;
+    const hashedPassword = await this.passwordService.hashPassword(password);
+    const createdUser = await this.prismaService.user.create({
+      data: {
+        password: hashedPassword,
+        username,
+        role,
       },
       select: {
         id: true,
