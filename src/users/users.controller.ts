@@ -15,6 +15,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PublicUser } from 'src/utils/typings/public-user';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RequestWithUser } from 'src/utils/typings/request-user';
+import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 
 @Controller('users')
 export class UsersController {
@@ -44,6 +45,20 @@ export class UsersController {
     @Req() req: RequestWithUser,
   ) {
     return this.usersService.update({ username }, updateUserDto, req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':username/role')
+  updateRole(
+    @Param('username') username: string,
+    @Body() updateUserRoleDto: UpdateUserRoleDto,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.usersService.updateRole(
+      { username },
+      updateUserRoleDto.role,
+      req.user,
+    );
   }
 
   @UseGuards(JwtAuthGuard)

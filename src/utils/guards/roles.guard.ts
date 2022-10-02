@@ -7,6 +7,8 @@ import { RequestWithUser } from '../typings/request-user';
 /**
  * Roles guard is used to protect route handlers and allowing
  * only the specified roles to access it.
+ * Use with Roles decorator to determine which role is allowed.
+ * For example { @Roles(Role.ADMIN) }
  *
  * JwtAuthGuard must be used before RolesGuard.
  */
