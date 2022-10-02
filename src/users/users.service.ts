@@ -90,7 +90,7 @@ export class UsersService {
     userWhereUniqueInput: Prisma.UserWhereUniqueInput,
     updateUserDto: UpdateUserDto,
     user: PublicUser,
-  ) {
+  ): Promise<PublicUser> {
     const userToUpdate = await this.prismaService.user
       .findUniqueOrThrow({
         where: userWhereUniqueInput,
@@ -125,18 +125,7 @@ export class UsersService {
 
   async remove(
     userWhereUniqueInput: Prisma.UserWhereUniqueInput,
-    user: PublicUser,
-  ) {
-    const userToRemove = await this.prismaService.user
-      .findUniqueOrThrow({
-        where: userWhereUniqueInput,
-      })
-      .catch(prismaQueryError);
-    const ability = this.caslAbilityFactory.createForUser(user);
-
-    if (ability.cannot(Action.Delete, subject('User', userToRemove)))
-      throw new ForbiddenException();
-
+  ): Promise<PublicUser> {
     const removedUser = await this.prismaService.user
       .delete({
         where: userWhereUniqueInput,
