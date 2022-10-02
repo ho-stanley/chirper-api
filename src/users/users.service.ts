@@ -4,7 +4,7 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
-import { Prisma, User } from '@prisma/client';
+import { Prisma, Role, User } from '@prisma/client';
 import { CaslAbilityFactory } from 'src/casl/casl-ability.factory';
 import { Action } from 'src/utils/enums/action.enum';
 import { prismaQueryError } from 'src/utils/error-handler';
@@ -123,9 +123,50 @@ export class UsersService {
     return updatedUser;
   }
 
+  async updateRole(
+    userWhereUniqueInput: Prisma.UserWhereUniqueInput,
+    role: Role,
+    user: PublicUser,
+  ): Promise<PublicUser> {
+    const userToUpdate = await this.prismaService.user
+      .findUniqueOrThrow({
+        where: userWhereUniqueInput,
+      })
+      .catch(prismaQueryError);
+    const ability = this.caslAbilityFactory.createForUser(user);
+
+    if (ability.cannot(Action.Update, subject('User', userToUpdate)))
+      throw new ForbiddenException();
+
+    const updatedUser = await this.prismaService.user
+      .update({
+        where: userWhereUniqueInput,
+        data: { role },
+        select: {
+          id: true,
+          username: true,
+          role: true,
+        },
+      })
+      .catch(prismaQueryError);
+
+    return updatedUser;
+  }
+
   async remove(
     userWhereUniqueInput: Prisma.UserWhereUniqueInput,
+    user: PublicUser,
   ): Promise<PublicUser> {
+    const userToRemove = await this.prismaService.user
+      .findUniqueOrThrow({
+        where: userWhereUniqueInput,
+      })
+      .catch(prismaQueryError);
+    const ability = this.caslAbilityFactory.createForUser(user);
+
+    if (ability.cannot(Action.Delete, subject('User', userToRemove)))
+      throw new ForbiddenException();
+
     const removedUser = await this.prismaService.user
       .delete({
         where: userWhereUniqueInput,

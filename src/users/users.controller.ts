@@ -15,9 +15,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PublicUser } from 'src/utils/typings/public-user';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RequestWithUser } from 'src/utils/typings/request-user';
-import { Roles } from 'src/utils/decorators/roles.decorator';
-import { Role } from '@prisma/client';
-import { RolesGuard } from 'src/utils/guards/roles.guard';
+import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 
 @Controller('users')
 export class UsersController {
@@ -49,10 +47,23 @@ export class UsersController {
     return this.usersService.update({ username }, updateUserDto, req.user);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @UseGuards(JwtAuthGuard)
+  @Patch(':username/role')
+  updateRole(
+    @Param('username') username: string,
+    @Body() updateUserRoleDto: UpdateUserRoleDto,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.usersService.updateRole(
+      { username },
+      updateUserRoleDto.role,
+      req.user,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Delete(':username')
-  remove(@Param('username') username: string) {
-    return this.usersService.remove({ username });
+  remove(@Param('username') username: string, @Req() req: RequestWithUser) {
+    return this.usersService.remove({ username }, req.user);
   }
 }
