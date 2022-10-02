@@ -98,7 +98,7 @@ export class UsersService {
       .catch(prismaQueryError);
     const ability = this.caslAbilityFactory.createForUser(user);
 
-    if (ability.cannot(Action.Delete, subject('User', userToUpdate)))
+    if (ability.cannot(Action.Update, subject('User', userToUpdate)))
       throw new ForbiddenException();
 
     const { password, repeatPassword } = updateUserDto;
@@ -140,6 +140,11 @@ export class UsersService {
     const removedUser = await this.prismaService.user
       .delete({
         where: userWhereUniqueInput,
+        select: {
+          id: true,
+          username: true,
+          role: true,
+        },
       })
       .catch(prismaQueryError);
 
