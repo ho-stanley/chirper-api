@@ -15,7 +15,7 @@ model Post {
   title      String
   body       String
   comments   Comment[]
-  author     User      @relation(fields: [authorId], references: [id])
+  author     User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId   String    @db.ObjectId
   authorName String
   createdAt  DateTime  @default(now())
@@ -27,7 +27,7 @@ model Comment {
   post       Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId     String    @db.ObjectId
   body       String
-  author     User      @relation(fields: [authorId], references: [id])
+  author     User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId   String    @db.ObjectId
   authorName String
   createdAt  DateTime  @default(now())
