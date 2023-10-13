@@ -53,7 +53,8 @@ export class UsersService {
       .catch(prismaQueryError);
     const ability = this.caslAbilityFactory.createForUser(userRequesting);
 
-    if (ability.cannot(Action.Create, 'User')) throw new ForbiddenException();
+    if (ability.cannot(Action.Create, subject('User', userRequesting)))
+      throw new ForbiddenException();
 
     await this.validateCreateUserData(createWithRoleDto);
     const { username, password, role } = createWithRoleDto;
