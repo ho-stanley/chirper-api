@@ -1,26 +1,24 @@
-import { AbilityBuilder, AbilityClass } from '@casl/ability';
-import { PrismaAbility, Subjects } from '@casl/prisma';
+import { AbilityBuilder, PureAbility } from '@casl/ability';
+import { PrismaQuery, Subjects, createPrismaAbility } from '@casl/prisma';
 import { Injectable } from '@nestjs/common';
 import { Comment, Post, Role } from '@prisma/client';
 import { Action } from 'src/utils/enums/action.enum';
 import { PublicUser } from 'src/utils/typings/public-user';
 
-type AppAbility = PrismaAbility<
-  [
-    string,
-    Subjects<{
+type AppSubjects =
+  | 'all'
+  | Subjects<{
       User: PublicUser;
       Post: Post;
       Comment: Comment;
-    }>,
-  ]
->;
-const AppAbility = PrismaAbility as AbilityClass<AppAbility>;
+    }>;
+
+type AppAbility = PureAbility<[Action, AppSubjects], PrismaQuery>;
 
 @Injectable()
 export class CaslAbilityFactory {
   createForUser(user: PublicUser) {
-    const { can, cannot, build } = new AbilityBuilder(AppAbility);
+    const { can, build } = new AbilityBuilder<AppAbility>(createPrismaAbility);
 
     if (user.role === Role.ADMIN) {
       // Admins can access all resources
