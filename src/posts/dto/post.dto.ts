@@ -23,6 +23,10 @@ export class PostDto {
   @ApiProperty({ type: Date, nullable: true })
   updatedAt: Date | null;
 
-  @ApiProperty({ type: [CommentDto], nullable: true })
+  @ApiProperty({
+    description: 'Comments are fetched on /posts/{id} endpoint',
+    type: [CommentDto],
+    nullable: true,
+  })
   comments?: CommentDto[];
 }
