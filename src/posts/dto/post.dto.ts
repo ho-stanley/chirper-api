@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CommentDto } from './comment.dto';
+import { CommentDto } from '../../comments/dto/comment.dto';
 
 export class PostDto {
   @ApiProperty()
