@@ -1,14 +1,14 @@
 import { AbilityBuilder, PureAbility } from '@casl/ability';
 import { PrismaQuery, Subjects, createPrismaAbility } from '@casl/prisma';
 import { Injectable } from '@nestjs/common';
-import { Comment, Post, Role } from '@prisma/client';
+import { Comment, Post, Role, User } from '@prisma/client';
 import { Action } from 'src/utils/enums/action.enum';
 import { PublicUser } from 'src/utils/typings/public-user';
 
 type AppSubjects =
   | 'all'
   | Subjects<{
-      User: PublicUser;
+      User: User;
       Post: Post;
       Comment: Comment;
     }>;
