@@ -1,11 +1,12 @@
 import { subject } from '@casl/ability';
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import { Post, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { CaslAbilityFactory } from 'src/casl/casl-ability.factory';
 import { Action } from 'src/utils/enums/action.enum';
 import { prismaQueryError } from 'src/utils/error-handler';
 import { PrismaService } from 'src/utils/prisma/prisma.service';
 import { PublicUser } from 'src/utils/typings/public-user';
+import { PostDto } from './dto/post.dto';
 
 @Injectable()
 export class PostsService {
@@ -14,7 +15,7 @@ export class PostsService {
     private readonly caslAbilityFactory: CaslAbilityFactory,
   ) {}
 
-  async create(postCreateInput: Prisma.PostCreateInput): Promise<Post> {
+  async create(postCreateInput: Prisma.PostCreateInput): Promise<PostDto> {
     const createdPost = await this.prismaService.post.create({
       data: postCreateInput,
     });
@@ -22,7 +23,7 @@ export class PostsService {
     return createdPost;
   }
 
-  async findAll(postFindManyArgs: Prisma.PostFindManyArgs): Promise<Post[]> {
+  async findAll(postFindManyArgs: Prisma.PostFindManyArgs): Promise<PostDto[]> {
     const posts = await this.prismaService.post.findMany(postFindManyArgs);
 
     return posts;
@@ -31,7 +32,7 @@ export class PostsService {
   async findOne(
     postWhereUniqueInput: Prisma.PostWhereUniqueInput,
     postInclude: Prisma.PostInclude,
-  ): Promise<Post | null> {
+  ): Promise<PostDto | null> {
     const post = await this.prismaService.post
       .findUnique({
         where: postWhereUniqueInput,
@@ -45,7 +46,7 @@ export class PostsService {
   async remove(
     postWhereUniqueInput: Prisma.PostWhereUniqueInput,
     user: PublicUser,
-  ): Promise<Post> {
+  ): Promise<PostDto> {
     const postToRemove = await this.prismaService.post
       .findUniqueOrThrow({
         where: postWhereUniqueInput,

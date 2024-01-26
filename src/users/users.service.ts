@@ -10,10 +10,10 @@ import { Action } from 'src/utils/enums/action.enum';
 import { prismaQueryError } from 'src/utils/error-handler';
 import { PasswordService } from 'src/utils/password/password.service';
 import { PrismaService } from 'src/utils/prisma/prisma.service';
-import { PublicUser } from 'src/utils/typings/public-user';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CreateWithRoleDto } from './dto/create-with-role.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserDto } from './dto/user.dto';
 
 @Injectable()
 export class UsersService {
@@ -23,7 +23,7 @@ export class UsersService {
     private readonly caslAbilityFactory: CaslAbilityFactory,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<PublicUser> {
+  async create(createUserDto: CreateUserDto): Promise<UserDto> {
     await this.validateCreateUserData(createUserDto);
     const { username, password } = createUserDto;
     const hashedPassword = await this.passwordService.hashPassword(password);
@@ -44,8 +44,8 @@ export class UsersService {
 
   async createWithRole(
     createWithRoleDto: CreateWithRoleDto,
-    user: PublicUser,
-  ): Promise<PublicUser> {
+    user: UserDto,
+  ): Promise<UserDto> {
     const userRequesting = await this.prismaService.user
       .findUniqueOrThrow({
         where: { username: user.username },
@@ -75,7 +75,7 @@ export class UsersService {
     return createdUser;
   }
 
-  async findAll(): Promise<PublicUser[]> {
+  async findAll(): Promise<UserDto[]> {
     const users = await this.prismaService.user.findMany({
       select: {
         id: true,
@@ -105,7 +105,7 @@ export class UsersService {
 
   async findOne(
     userWhereUniqueInput: Prisma.UserWhereUniqueInput,
-  ): Promise<PublicUser | null> {
+  ): Promise<UserDto | null> {
     const user = await this.prismaService.user
       .findUnique({
         where: userWhereUniqueInput,
@@ -123,8 +123,8 @@ export class UsersService {
   async update(
     userWhereUniqueInput: Prisma.UserWhereUniqueInput,
     updateUserDto: UpdateUserDto,
-    user: PublicUser,
-  ): Promise<PublicUser> {
+    user: UserDto,
+  ): Promise<UserDto> {
     const userToUpdate = await this.prismaService.user
       .findUniqueOrThrow({
         where: userWhereUniqueInput,
@@ -160,8 +160,8 @@ export class UsersService {
   async updateRole(
     userWhereUniqueInput: Prisma.UserWhereUniqueInput,
     role: Role,
-    user: PublicUser,
-  ): Promise<PublicUser> {
+    user: UserDto,
+  ): Promise<UserDto> {
     const userToUpdate = await this.prismaService.user
       .findUniqueOrThrow({
         where: userWhereUniqueInput,
@@ -189,8 +189,8 @@ export class UsersService {
 
   async remove(
     userWhereUniqueInput: Prisma.UserWhereUniqueInput,
-    user: PublicUser,
-  ): Promise<PublicUser> {
+    user: UserDto,
+  ): Promise<UserDto> {
     const userToRemove = await this.prismaService.user
       .findUniqueOrThrow({
         where: userWhereUniqueInput,
